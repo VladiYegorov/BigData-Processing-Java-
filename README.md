@@ -67,7 +67,6 @@ Design (mappers and reducers):
 		BoolMapper exmaple: 
 			input: <"w1",\t,"w2",\t,"True"> 
 			output: <"w1 w2","True">
-
 		SentanceMapper input: syntactic NGRAM 
 		SentanceMapper output: 
 			for every pair of two nouns (by order): 
@@ -77,14 +76,11 @@ Design (mappers and reducers):
 			input: "actions	unpredictable/JJ/amod/2 actions/NNS/pobj/0 of/IN/prep/2 man/NN/pobj/3	13	1936,2	1948,1	
 				1951,3	1964,1	1972,2	1983,1	1987,1	1990,2" 
 			output: <"action man", "prep of pobj	13">
-
-
 		ReduceJoinReducer input: the output of both reducers
 		ReduceJoinReducer output: <the set of words, bool	DependencyPaths(seperated by tabs)>
 		ReduceJoinReducer example:
 			input: <"action man", "prep of pobj	13">, <"action man", "prep by pobj	24">, <"action man", "False">
 			output:<"action man","False	prep of pobj	13	prep by pobj	24">
-
 	Step2:
 		MapperClass input: output of Step1
 		MapperClass output:
@@ -93,14 +89,12 @@ Design (mappers and reducers):
 		MapperClass example:
 			input: "action man	False	prep of pobj	13	prep by pobj	24"
 			output: <"prep of pobj", "False">, <"prep by pobj", "False">
-		
 		ReducerClass input: output of MapperClass
 		ReducerClass output: all paths that appear in at least DPmin different sentences and that the path appear in at least one 
 					True/False test set
 		ReducerClass example (for DPmin = 1):
 			input: <"prep of pobj", "False">, <"prep of pobj", "Nan">
 			output: <"prep of pobj","">
-
 	Step3:
 		DepMapper input: output of Step2
 		DepMapper output:  
@@ -109,7 +103,6 @@ Design (mappers and reducers):
 		DepMapper example if the number of reduce tasks for this job is 2:
 			input: "prep of pobj"
 			output: <PrioDep(1,1,"prep of pobj"),""> , <PrioDep(1,2,"prep of pobj"),"">
-
 		WordsMapper input: output of Step1
 		WordsMapper output: if after the set of words there is "True"/"False then:
 			key: a PrioDep with priority 2 and partition 0 with the set of words and boolean
@@ -117,7 +110,6 @@ Design (mappers and reducers):
 		WordsMapper example:
 			input: "action man	False	prep of pobj	13	prep by pobj	24"
 			output: <PrioDep(2,0,"action man	False") , "prep of pobj	13	prep by pobj	24">
-
 		JoinReducerClass input: output of DepMapper and WordsMapper
 		JoinReducerClass output: the set of words, the boolean, and the dependency vector for that set of words
 		JoinReducerClass example:
