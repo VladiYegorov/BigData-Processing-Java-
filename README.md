@@ -1,1 +1,125 @@
 # BigData-Processing-Java-
+Overview:
+	-Using map-reduce pattern on a large-scale input, "Google Syntactic N-Grams", for automatic hypernym discovery.
+	-Basic implementation for the paper "Learning syntactic patterns for automatic hypernym discovery", http://ai.stanford.edu/~rion/papers/hypernym_nips05.pdf
+		*sections 5,6 are not implemented.
+	-Environment and Tools:	Amazon Web Services(AWS)
+							            Hadoop 2.7.2
+							
+Instructions:
+	-Make a bucket "yourBucketName" and upload "hypernym.txt", in the bucket create folder "input" and upload to the folder Google Syntactic N-Grams text files.
+	-Compile using Maven step1/2/3 and upload the jar files to a bucket in S3 "youBucketName"
+		*The bucket should look like this:
+			-input (folder)
+			-Step1.jar
+			-Step2.jar
+			-Step3.jar
+			-hypernym.txt
+	-Change the parameter "bucketName" in Main.java and MakeCsv.java to "youBucketName"
+	-Change the parameter "DPMin" in Main.java to relevant parameter with refer to your input corpus (In the paper, the authors defined this parameter as 5)
+	-Run Main.java and wait for result in your step3 output folder
+	-Run MakeCsv.java or other script to download the results and make it compatible with your Classfier
+
+Input:	DPMin The minimal number of unique noun pairs for each dependency path. Dependency path with less distinct noun-pairs should not be considered as a feature (as described at the first paragraph of section 4)
+Output: link is in /src/main/resources (/ being the root folder of the project)
+
+Job Flow:
+Step1:
+	-Objective: finding all NN to NN combination.
+	-First input (for BoolMapper): w1 w2 boolean (Hypernym file)
+	-Second input (for SentanceMapper): syntactic NGRAM
+	-Output: <w1 w2, bool (dep num)+> - when w1 and w2 are two stemmed nouns, bool is either "true", "false" or "Nan", dep is a dependancy path between them and num being the number of times those two noun are being used with the same dependancy path between them.
+Step2:
+	-Objective: finding all dependency paths that are being used more than DPmin times and that are in the Hypernym file.
+	-First input: output of Step1
+	-Second input: DPmin
+	-Output: all dependency paths from Step1 s.t. the path count is greater than DPmin and the path appears in at least one True/False test set.
+Step3:
+	-Objective: making dependency vector for each NN to NN.
+	-First input: output of Step1
+	-Second input: output of Step2
+	-Output: <w1 w2 bool depVector> - when w1 w2 are the pair of (stemmed) nouns, bool being the True/False for the pair (from the hypernym file), and depVector being the vetor of all the dependency paths s.t. each number in the vector is how many times these two stemmed nouns are on that specific dependency path. 
+
+once Step3 is done, we activate MakeCsv.java, which takes as an input the output of Step3 and give as an output the same results only as a csv file (with the data line, commas, ect).  
+
+other files:
+	(not file, but an object type) PrioDep : class PrioDep stores the priority ,partition and key.
+			sort <priority,partition, key> by priority, then by partition.
+	Stemmer: receives input of chars and returns their stemmed form if the have one.
+
+how to run program from the source file:
+ At / run:
+		mvn clean
+ At / run:
+		mvn package
+ At / run:
+		cd target
+ At /target/ run:
+		java -jar Hw3-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+
+
+Design (mappers and reducers):
+	Step1:
+		BoolMapper input: Hypernym file 
+		BoolMapper output: 
+			key: a string with both of the words and a space btween them
+			value: a string of the boolean
+		BoolMapper exmaple: 
+			input: <"w1",\t,"w2",\t,"True"> 
+			output: <"w1 w2","True">
+
+		SentanceMapper input: syntactic NGRAM 
+		SentanceMapper output: 
+			for every pair of two nouns (by order): 
+				key: a string with both of the nouns and a space btween them 
+				value: the dependency path between them and number of times this sentence is used
+		SentanceMapper exmaple: 
+			input: "actions	unpredictable/JJ/amod/2 actions/NNS/pobj/0 of/IN/prep/2 man/NN/pobj/3	13	1936,2	1948,1	
+				1951,3	1964,1	1972,2	1983,1	1987,1	1990,2" 
+			output: <"action man", "prep of pobj	13">
+
+
+		ReduceJoinReducer input: the output of both reducers
+		ReduceJoinReducer output: <the set of words, bool	DependencyPaths(seperated by tabs)>
+		ReduceJoinReducer example:
+			input: <"action man", "prep of pobj	13">, <"action man", "prep by pobj	24">, <"action man", "False">
+			output:<"action man","False	prep of pobj	13	prep by pobj	24">
+
+	Step2:
+		MapperClass input: output of Step1
+		MapperClass output:
+			key: the paths (trimed)
+			value: the boolean
+		MapperClass example:
+			input: "action man	False	prep of pobj	13	prep by pobj	24"
+			output: <"prep of pobj", "False">, <"prep by pobj", "False">
+		
+		ReducerClass input: output of MapperClass
+		ReducerClass output: all paths that appear in at least DPmin different sentences and that the path appear in at least one 
+					True/False test set
+		ReducerClass example (for DPmin = 1):
+			input: <"prep of pobj", "False">, <"prep of pobj", "Nan">
+			output: <"prep of pobj","">
+
+	Step3:
+		DepMapper input: output of Step2
+		DepMapper output:  
+			key: a PrioDep with priority 1 and partition for every one of the number of reduce tasks for this job
+			value: empty
+		DepMapper example if the number of reduce tasks for this job is 2:
+			input: "prep of pobj"
+			output: <PrioDep(1,1,"prep of pobj"),""> , <PrioDep(1,2,"prep of pobj"),"">
+
+		WordsMapper input: output of Step1
+		WordsMapper output: if after the set of words there is "True"/"False then:
+			key: a PrioDep with priority 2 and partition 0 with the set of words and boolean
+			output: the paths with their amounts (the rest of the line)
+		WordsMapper example:
+			input: "action man	False	prep of pobj	13	prep by pobj	24"
+			output: <PrioDep(2,0,"action man	False") , "prep of pobj	13	prep by pobj	24">
+
+		JoinReducerClass input: output of DepMapper and WordsMapper
+		JoinReducerClass output: the set of words, the boolean, and the dependency vector for that set of words
+		JoinReducerClass example:
+			input: output of DepMapper and WordsMapper
+			output: <"action man	False","0	0	15	0	10">
