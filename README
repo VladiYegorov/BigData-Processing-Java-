@@ -1,7 +1,6 @@
 Overview:
 	-Using map-reduce pattern on a large-scale input, "Google Syntactic N-Grams", for automatic hypernym discovery.
-	-Basic implementation for the paper "Learning syntactic patterns for automatic hypernym discovery", 
-	http://ai.stanford.edu/~rion/papers/hypernym_nips05.pdf
+	-Basic implementation for the paper "Learning syntactic patterns for automatic hypernym discovery", http://ai.stanford.edu/~rion/papers/hypernym_nips05.pdf
 		*sections 5,6 are not implemented.
 	-Environment and Tools:	Amazon Web Services(AWS)
 							Hadoop 2.7.2
