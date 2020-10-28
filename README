@@ -37,9 +37,7 @@ Step3:
 	-Objective: making dependency vector for each NN to NN.
 	-First input: output of Step1
 	-Second input: output of Step2
-	-Output: <w1 w2 bool depVector> - when w1 w2 are the pair of (stemmed) nouns, bool being the True/False for the pair (from the hypernym file), and depVector being the vetor of all the dependency paths s.t. each number in the vector is how many times these two stemmed nouns are on that specific dependency path. 
-
-once Step3 is done, we activate MakeCsv.java, which takes as an input the output of Step3 and give as an output the same results only as a csv file (with the data line, commas, ect).  
+	-Output: <w1 w2 bool depVector> - when w1 w2 are the pair of (stemmed) nouns, bool being the True/False for the pair (from the hypernym file), and depVector being the vetor of all the dependency paths s.t. each number in the vector is how many times these two stemmed nouns are on that specific dependency path.  
 
 other files:
 	(not file, but an object type) PrioDep : class PrioDep stores the priority ,partition and key.
