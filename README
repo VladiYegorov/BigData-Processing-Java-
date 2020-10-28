@@ -7,7 +7,8 @@ Overview:
 							Hadoop 2.7.2
 							
 Instructions:
-	-Make a bucket "yourBucketName" and upload "hypernym.txt", in the bucket create folder "input" and upload to the folder Google Syntactic N-Grams text files.
+	-Make a bucket "yourBucketName" and upload "hypernym.txt", in the bucket create folder "input" and upload to the folder 
+	Google Syntactic N-Grams text files.
 	-Compile using Maven step1/2/3 and upload the jar files to a bucket in S3 "youBucketName"
 		*The bucket should look like this:
 			-input (folder)
@@ -16,11 +17,13 @@ Instructions:
 			-Step3.jar
 			-hypernym.txt
 	-Change the parameter "bucketName" in Main.java and MakeCsv.java to "youBucketName"
-	-Change the parameter "DPMin" in Main.java to relevant parameter with refer to your input corpus (In the paper, the authors defined this parameter as 5)
+	-Change the parameter "DPMin" in Main.java to relevant parameter with refer to your input corpus 
+		*In the paper, the authors defined this parameter as 5
 	-Run Main.java and wait for result in your step3 output folder
 	-Run MakeCsv.java or other script to download the results and make it compatible with your Classfier
 
-Input:	DPMin The minimal number of unique noun pairs for each dependency path. Dependency path with less distinct noun-pairs should not be considered as a feature (as described at the first paragraph of section 4)
+Input:	DPMin The minimal number of unique noun pairs for each dependency path. Dependency path with less distinct
+	noun-pairs should not be considered as a feature (as described at the first paragraph of section 4)
 Output: link is in /src/main/resources (/ being the root folder of the project)
 
 Job Flow:
@@ -28,7 +31,9 @@ Step1:
 	-Objective: finding all NN to NN combination.
 	-First input (for BoolMapper): w1 w2 boolean (Hypernym file)
 	-Second input (for SentanceMapper): syntactic NGRAM
-	-Output: <w1 w2, bool (dep num)+> - when w1 and w2 are two stemmed nouns, bool is either "true", "false" or "Nan", dep is a dependancy path between them and num being the number of times those two noun are being used with the same dependancy path between them.
+	-Output: <w1 w2, bool (dep num)+> - when w1 and w2 are two stemmed nouns, bool is either "true", "false" or "Nan", 
+		 dep is a dependancy path between them and num being the number of times those two noun are being used with
+		 the same dependancy path between them.
 Step2:
 	-Objective: finding all dependency paths that are being used more than DPmin times and that are in the Hypernym file.
 	-First input: output of Step1
@@ -38,7 +43,9 @@ Step3:
 	-Objective: making dependency vector for each NN to NN.
 	-First input: output of Step1
 	-Second input: output of Step2
-	-Output: <w1 w2 bool depVector> - when w1 w2 are the pair of (stemmed) nouns, bool being the True/False for the pair (from the hypernym file), and depVector being the vetor of all the dependency paths s.t. each number in the vector is how many times these two stemmed nouns are on that specific dependency path.  
+	-Output: <w1 w2 bool depVector> - when w1 w2 are the pair of (stemmed) nouns, bool being the True/False for the 
+	pair (from the hypernym file), and depVector being the vetor of all the dependency paths s.t. each number in the vector
+	is how many times these two stemmed nouns are on that specific dependency path.  
 
 other files:
 	(not file, but an object type) PrioDep : class PrioDep stores the priority ,partition and key.
