@@ -4,7 +4,7 @@ Overview:
 	http://ai.stanford.edu/~rion/papers/hypernym_nips05.pdf
 		*sections 5,6 are not implemented.
 	-Environment and Tools:	Amazon Web Services(AWS)
-							Hadoop 2.7.2
+				Hadoop 2.7.2
 							
 Instructions:
 	-Make a bucket "yourBucketName" and upload "hypernym.txt", in the bucket create folder "input" and upload to the folder 
@@ -88,7 +88,8 @@ Design (mappers and reducers):
 		ReduceJoinReducer input: the output of both reducers
 		ReduceJoinReducer output: <the set of words, bool	DependencyPaths(seperated by tabs)>
 		ReduceJoinReducer example:
-			input: <"action man", "prep of pobj	13">, <"action man", "prep by pobj	24">, <"action man", "False">
+			input: <"action man", "prep of pobj	13">, <"action man", "prep by pobj	24">, 
+			<"action man", "False">
 			output:<"action man","False	prep of pobj	13	prep by pobj	24">
 
 	Step2:
@@ -101,8 +102,8 @@ Design (mappers and reducers):
 			output: <"prep of pobj", "False">, <"prep by pobj", "False">
 		
 		ReducerClass input: output of MapperClass
-		ReducerClass output: all paths that appear in at least DPmin different sentences and that the path appear in at least one 
-					True/False test set
+		ReducerClass output: 	all paths that appear in at least DPmin different sentences and that the path appear in 
+					at least one True/False test set
 		ReducerClass example (for DPmin = 1):
 			input: <"prep of pobj", "False">, <"prep of pobj", "Nan">
 			output: <"prep of pobj","">
